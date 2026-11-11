@@ -66,6 +66,23 @@ function parse(code) {
   throw new Error(`The parser ${parserName} is not yet supported for testing.`);
 }
 
+function findOpeningElement(node) {
+  if (!node || typeof node !== 'object') {
+    return null;
+  }
+  if (node.type === 'JSXOpeningElement') {
+    return node;
+  }
+  const values = Object.keys(node).map((key) => node[key]);
+  for (let i = 0; i < values.length; i += 1) {
+    const found = findOpeningElement(values[i]);
+    if (found) {
+      return found;
+    }
+  }
+  return null;
+}
+
 export function getOpeningElement(code) {
   const parsedCode = parse(code);
   let body;
@@ -78,6 +95,10 @@ export function getOpeningElement(code) {
   }
   if (Array.isArray(body) && body[0] != null) {
     const [{ expression }] = body;
+    if (!expression) {
+      // e.g. a class declaration, for JSX that needs class context (private names)
+      return findOpeningElement(body[0]);
+    }
     return expression.type === 'JSXFragment' ? expression.openingFragment : expression.openingElement;
   }
 

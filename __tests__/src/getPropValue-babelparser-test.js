@@ -574,6 +574,84 @@ describe('getPropValue', () => {
     });
   });
 
+  describeIfNotBabylon('Private class member', () => {
+    const inClass = (expr) => `class A { #x = {}; render() { return <div foo={${expr}} />; } }`;
+
+    it('should return string representation of a private member (Babel `PrivateName`)', () => {
+      const prop = extractProp(inClass('this.#x'));
+
+      const expected = 'this.#x';
+      const actual = getPropValue(prop);
+
+      assert.equal(actual, expected);
+    });
+
+    it('should return string representation of a nested private member (Babel `PrivateName`)', () => {
+      const prop = extractProp(inClass('this.#x.y'));
+
+      const expected = 'this.#x.y';
+      const actual = getPropValue(prop);
+
+      assert.equal(actual, expected);
+    });
+
+    describe('ESTree `PrivateIdentifier`', () => {
+      beforeEach(() => {
+        changePlugins((pls) => [...pls.filter((pl) => pl !== 'estree'), ['estree', { classFeatures: true }]]);
+      });
+
+      it('should return string representation of a private member', () => {
+        const prop = extractProp(inClass('this.#x'));
+
+        assert.equal(prop.value.expression.property.type, 'PrivateIdentifier');
+
+        const expected = 'this.#x';
+        const actual = getPropValue(prop);
+
+        assert.equal(actual, expected);
+      });
+
+      it('should return string representation of an optional private member', () => {
+        const prop = extractProp(inClass('this?.#x'));
+
+        const expected = 'this?.#x';
+        const actual = getPropValue(prop);
+
+        assert.equal(actual, expected);
+      });
+
+      it('should evaluate a private `in` check without logging an error', () => {
+        const prop = extractProp(inClass('#x in this'));
+        let counter = 0;
+        // eslint-disable-next-line no-console
+        const errorOrig = console.error;
+        // eslint-disable-next-line no-console
+        console.error = () => {
+          counter += 1;
+        };
+
+        const expected = false;
+        const actual = getPropValue(prop);
+
+        // eslint-disable-next-line no-console
+        console.error = errorOrig;
+        assert.equal(actual, expected);
+        assert.equal(counter, 0);
+      });
+
+      it('should handle `TSPrivateIdentifier` from @typescript-eslint/parser v4, whose name includes `#`', () => {
+        const prop = extractProp(inClass('this.#x'));
+        prop.value.expression.property.type = 'TSPrivateIdentifier';
+        prop.value.expression.property.name = '#x';
+
+        const expected = 'this.#x';
+        const actual = getPropValue(prop);
+
+        assert.equal(actual, expected);
+      });
+    });
+  });
+
   describe('Call expression', () => {
     it('should return string representation of callee', () => {
       const prop = extractProp('<div foo={bar()} />');

@@ -26,6 +26,7 @@ import TypeCastExpression from './TypeCastExpression';
 import SequenceExpression from './SequenceExpression';
 import TSNonNullExpression from './TSNonNullExpression';
 import AssignmentExpression from './AssignmentExpression';
+import PrivateIdentifier from './PrivateIdentifier';
 
 // Composition map of types to their extractor functions.
 const TYPES = {
@@ -58,6 +59,9 @@ const TYPES = {
   SequenceExpression,
   TSNonNullExpression,
   AssignmentExpression,
+  PrivateIdentifier,
+  PrivateName: PrivateIdentifier,
+  TSPrivateIdentifier: PrivateIdentifier,
 };
 
 const noop = () => null;
@@ -157,6 +161,9 @@ const LITERAL_TYPES = {
   TypeCastExpression: noop,
   SequenceExpression: noop,
   ChainExpression: noop,
+  PrivateIdentifier: noop,
+  PrivateName: noop,
+  TSPrivateIdentifier: noop,
 };
 
 /**
