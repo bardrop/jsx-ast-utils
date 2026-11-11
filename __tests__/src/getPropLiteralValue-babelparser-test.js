@@ -546,6 +546,25 @@ describe('getLiteralPropValue', () => {
       assert.equal(actual, expected);
     });
 
+    it('should return null for a Typescript `satisfies` expression, without logging an error', () => {
+      const prop = extractProp('<div foo={bar satisfies Bar} />');
+      let counter = 0;
+      // eslint-disable-next-line no-console
+      const errorOrig = console.error;
+      // eslint-disable-next-line no-console
+      console.error = () => {
+        counter += 1;
+      };
+
+      const expected = null;
+      const actual = getLiteralPropValue(prop);
+
+      // eslint-disable-next-line no-console
+      console.error = errorOrig;
+      assert.equal(actual, expected);
+      assert.equal(counter, 0);
+    });
+
     it('should work with a this.props value', () => {
       const prop = extractProp('<a href={this.props.href!}>Download</a>', 'href');
       const expected = null;

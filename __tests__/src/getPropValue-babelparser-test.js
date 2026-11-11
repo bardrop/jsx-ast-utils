@@ -1149,6 +1149,42 @@ describe('getPropValue', () => {
 
       assert.equal(actual, expected);
     });
+
+    it('should return string representation of variable identifier wrapped in a Typescript `satisfies` expression', () => {
+      const prop = extractProp('<div foo={bar satisfies Bar} />');
+
+      const expected = 'bar';
+      const actual = getPropValue(prop);
+
+      assert.equal(actual, expected);
+    });
+
+    it('should return the literal value wrapped in a Typescript `satisfies` expression', () => {
+      const prop = extractProp('<div foo={"name" satisfies keyof Fields} />');
+
+      const expected = 'name';
+      const actual = getPropValue(prop);
+
+      assert.equal(actual, expected);
+    });
+
+    it('should return string representation of a member expression wrapped in a Typescript `satisfies` expression', () => {
+      const prop = extractProp('<div foo={bar.baz satisfies Baz} />');
+
+      const expected = 'bar.baz';
+      const actual = getPropValue(prop);
+
+      assert.equal(actual, expected);
+    });
+
+    it('should return string representation of a `satisfies` expression combined with an `as` cast', () => {
+      const prop = extractProp('<div foo={bar as unknown satisfies Bar} />');
+
+      const expected = 'bar';
+      const actual = getPropValue(prop);
+
+      assert.equal(actual, expected);
+    });
   });
 
   describeIfNotBabylon('TSNonNullExpression', () => {
@@ -1217,6 +1253,23 @@ describe('getPropValue', () => {
       const actual = getPropValue(prop);
       const expected = 'bar.baz!';
       assert.equal(actual, expected);
+    });
+
+    it('should return string representation of a `satisfies` expression wrapped in a Typescript non-null assertion, without logging an error', () => {
+      const prop = extractProp('<div foo={(bar satisfies Bar)!.baz} />');
+      let counter = 0;
+      // eslint-disable-next-line no-console
+      const errorOrig = console.error;
+      // eslint-disable-next-line no-console
+      console.error = () => {
+        counter += 1;
+      };
+      const actual = getPropValue(prop);
+      // eslint-disable-next-line no-console
+      console.error = errorOrig;
+      const expected = 'bar!.baz';
+      assert.equal(actual, expected);
+      assert.equal(counter, 0);
     });
 
     it('should return string representation of an object wrapped in a deep Typescript non-null assertion', () => {

@@ -32,7 +32,7 @@ export default function extractValueFromTSNonNullExpression(value) {
     return value.value;
   }
 
-  if (value.type === 'TSAsExpression') {
+  if (value.type === 'TSAsExpression' || value.type === 'TSSatisfiesExpression') {
     return extractValueFromTSNonNullExpression(value.expression);
   }
 

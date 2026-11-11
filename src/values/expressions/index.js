@@ -93,7 +93,7 @@ export default function extract(value) {
     type = 'TSNonNullExpression';
   }
 
-  while (type === 'TSAsExpression') {
+  while (type === 'TSAsExpression' || type === 'TSSatisfiesExpression') {
     ({ type } = expression);
     if (expression.expression) {
       ({ expression } = expression);
@@ -154,6 +154,7 @@ const LITERAL_TYPES = {
   SpreadElement: noop,
   TSNonNullExpression: noop,
   TSAsExpression: noop,
+  TSSatisfiesExpression: noop,
   TypeCastExpression: noop,
   SequenceExpression: noop,
   ChainExpression: noop,
